@@ -2,7 +2,7 @@
 
 Interactive dashboard for analyzing Russian government bonds (OFZ) using data from Moscow Exchange (MOEX)
 
-**Live Demo:**  (will be added after deployment)
+**Live Demo:**  https://ofz-yield-dashboard.streamlit.app/
 
 ![Demo](assets/demo.gif)
 
