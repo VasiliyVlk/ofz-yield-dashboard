@@ -36,6 +36,11 @@ This project is an interactive analytics tool that provides **Yield Map** visual
   - MOEX data feed with 15-minute delay
   - Optimized cache (10-minute TTL) for responsive analysis and efficient comparison
 
+- **Bilingual UI**
+  - RU / EN with dynamic state synchronization
+
+---
+
 ## Project Structure
 
 ```text
@@ -44,6 +49,7 @@ This project is an interactive analytics tool that provides **Yield Map** visual
 ├── data.py             # Data layer (MOEX API, preprocessing, enrichment)
 ├── visualization.py    # Chart creation (Plotly)
 ├── ui.py               # UI components & user interaction logic
+├── i18n.py             # Translation layer (UI localization, language handling)
 ├── requirements.txt    # Project dependencies
 ├── README.md           # Project documentation
 └── assets/
@@ -74,6 +80,12 @@ This project is an interactive analytics tool that provides **Yield Map** visual
   * Renders UI components (sidebar, metrics)
   * Handles user feedback and errors
 
+* **i18n.py**
+
+  * Manages language state across components 
+  * Decouples UI text from data layer 
+  * Supports dynamic label formatting
+
 ---
 
 ## How to Run
@@ -98,12 +110,3 @@ MOEX ISS API
 * Plotly
 * SciPy (PchipInterpolator)
 * Requests
-
----
-
-## Future Improvements
-
-* Add multi-language Support (EN/RU toggle)
-* Add export/download functionality
-
----
