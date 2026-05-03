@@ -1,8 +1,16 @@
 import plotly.graph_objects as go
 import numpy as np
+from i18n import translate as t
+import pandas as pd
+from scipy.interpolate import PchipInterpolator
 
 
-def create_chart(df, zcyc_interp=None, selected_secid=None):
+def create_chart(
+    df: pd.DataFrame,
+    zcyc_interp: PchipInterpolator | None = None,
+    selected_secid: str | None = None
+) -> go.Figure:
+
     """
         Create a Plotly scatter chart for bond yields with an optional yield curve.
 
@@ -15,12 +23,12 @@ def create_chart(df, zcyc_interp=None, selected_secid=None):
             df (pd.DataFrame):
                 DataFrame containing bond data. Expected columns:
                 - 'SECID': Unique bond identifier
-                - 'SHORTNAME': Bond display name
+                - 'display_name': Bond display name
                 - 'ttm': Time to maturity (in years)
                 - 'EFFECTIVEYIELD': Yield (%)
                 - 'duration_years': Duration (in years)
 
-            zcyc_interp (Callable, optional):
+            zcyc_interp (scipy.interpolate.PchipInterpolator, optional):
                 Interpolator function for the zero-coupon yield curve.
                 Must support:
                 - `.x` attribute (array of maturities)
@@ -54,18 +62,19 @@ def create_chart(df, zcyc_interp=None, selected_secid=None):
 
         y_smooth = zcyc_interp(x_smooth)
 
-        fig.add_trace(go.Scatter(
-            x=x_smooth,
-            y=y_smooth,
-            mode="lines",
-            line=dict(color="lightgray", width=1.5),
-            name="КБД",
-            hovertemplate=(
-                    "<b>КБД</b><br>" +
-                    "До погашения: %{x:.2f} лет<br>" +
-                    "Значение: %{y:.2f}%<extra></extra>"
-            ),
-        ))
+        fig.add_trace(
+            go.Scatter(
+                x=x_smooth,
+                y=y_smooth,
+                mode="lines",
+                line=dict(color="lightgray", width=1.5),
+                hovertemplate=(
+                        f"<b>{t('zcyc')}</b><br>" +
+                        f"{t('to_maturity')}: %{{x:.2f}} {t('years')}<br>" +
+                        f"{t('value')}: %{{y:.2f}}%<extra></extra>"
+                ),
+            )
+        )
 
     # --- FIND INDEX OF SELECTED POINT ---
     selected_index = None
@@ -86,7 +95,7 @@ def create_chart(df, zcyc_interp=None, selected_secid=None):
 
         # Attach extra data for hover & selection handling
         customdata=df[["SECID", 'duration_years']],
-        text=df["SHORTNAME"],
+        text=df["display_name"],
 
         marker=dict(
             size=8,
@@ -102,9 +111,9 @@ def create_chart(df, zcyc_interp=None, selected_secid=None):
 
         hovertemplate=(
                 "<b>%{text}</b><br>" +
-                "Дюрация: %{customdata[1]:.2f}<br>" +
-                "До погашения: %{x:.2f} лет<br>" +
-                "Эффективная доходность: %{y:.2f}%<extra></extra>"
+                f"{t('duration_label')}: %{{customdata[1]:.2f}} {t('years')}<br>" +
+                f"{t('to_maturity')}: %{{x:.2f}} {t('years')}<br>" +
+                f"{t('eff_yield')}: %{{y:.2f}}%<extra></extra>"
         ),
     ))
 

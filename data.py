@@ -2,9 +2,15 @@ import pandas as pd
 import requests
 import streamlit as st
 from scipy.interpolate import PchipInterpolator
+from typing import Any
 
 @st.cache_data(ttl=600, show_spinner=False)
-def fetch_moex_blocks(url, params, blocks):
+def fetch_moex_blocks(
+    url: str,
+    params: dict[str, Any],
+    blocks: list[str]
+) -> tuple[dict[str, pd.DataFrame] | None, str | None]:
+
     """
     Fetch multiple data blocks from a MOEX ISS API endpoint.
 
@@ -77,7 +83,10 @@ def fetch_moex_blocks(url, params, blocks):
         return None, str(e)
 
 
-def get_bonds_data(zcyc_interp=None):
+def get_bonds_data(
+        zcyc_interp: PchipInterpolator | None = None
+) -> tuple[pd.DataFrame | None, str | None]:
+
     """
     Fetch and process government bond data from the MOEX TQOB board.
 
@@ -126,10 +135,16 @@ def get_bonds_data(zcyc_interp=None):
     securities_df = data['securities']
     marketdata_yields_df = data['marketdata_yields']
 
-    # Simplify bond type labels for easier filtering/display
-    securities_df.replace(
-        {'Фикс с известным купоном': 'Фикс', 'Линкер/облигации с индексируемым': 'Линкер'},
-        inplace=True
+    # Normalize bond coupon types to stable internal values.
+    # Converts MOEX-specific Russian labels into unified identifiers ('fix', 'floater')
+    # used across the app for:
+    # - consistent filtering logic
+    # - language-independent UI (i18n support)
+    # - avoiding reliance on raw API text values
+    securities_df['coupon_type'] = (
+        securities_df['BONDTYPE'].replace(
+            {'Фикс с известным купоном': 'fix', 'Флоатер': 'floater'}
+        )
     )
 
     # Merge static and market data
@@ -163,7 +178,7 @@ def get_bonds_data(zcyc_interp=None):
     return all_data, None
 
 
-def get_zcyc_interpolator():
+def get_zcyc_interpolator() -> tuple[PchipInterpolator | None, str | None]:
     """
     Fetch the Zero-Coupon Yield Curve (ZCYC) from MOEX and build an interpolator.
 
@@ -216,7 +231,7 @@ def get_zcyc_interpolator():
     return interp, None
 
 
-def get_rusfar_value():
+def get_rusfar_value() -> tuple[float | None, str | None]:
     """
     Fetch the latest RUSFAR (Russian Funding Alternative Rate) value.
 
@@ -242,7 +257,7 @@ def get_rusfar_value():
     data, error = fetch_moex_blocks(url, params, ['marketdata'])
 
     if error:
-        return pd.DataFrame(), error
+        return None, error
 
     df = data['marketdata']
     value = df.loc[0, 'LASTVALUE']
